@@ -35,5 +35,5 @@ class GroqClient {
     } catch (e) {
       throw Exception('Error getting completion: $e');
     }
-  }//yo wassssssaaaappppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp
-}//Hack Tuah or imma SMack yuah
+  }
+}

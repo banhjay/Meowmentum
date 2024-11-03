@@ -6,6 +6,7 @@ class CatCustomizerPage extends StatefulWidget {
 }
 
 class _CatCustomizerPageState extends State<CatCustomizerPage> {
+  // Map to keep track of selected items by category
   Map<String, String?> selectedItems = {
     'Fur Coat': null,
     'Head': null,
@@ -15,23 +16,24 @@ class _CatCustomizerPageState extends State<CatCustomizerPage> {
     'Mouth': null,
   };
 
-  // Updated clothingItems map with accurate paths
+  // List of items available for each category
   final Map<String, List<String>> clothingItems = {
-    'Fur Coat': ['Fur Coat/black_coat', 'Fur Coat/gray_coat', 'Fur Coat/purple_coat'],
+    'Fur Coat': ['Fur Coat/black_coat', 'Fur Coat/gray_coat', 'Fur Coat/orange_coat'],
     'Head': ['Head/bear_hat', 'Head/strawberry_hat'],
-    'Neck': ['neck/bandana', 'neck/collar'],
+    'Neck': ['Neck/bandana', 'Neck/bow'],
     'Eyes': ['eyes/derpy_eyes', 'eyes/sparkly_eyes'],
-    'Eyebrows': ['eyebrows/downturned_brows', 'eyebrows/straight_brows'],
+    'Eyebrows': ['eyebrows/straight_brows', 'eyebrows/upturned_brows'],
     'Mouth': ['mouth/open_mouth', 'mouth/tounge'],
   };
 
-  String selectedCategory = 'Fur Coat'; // Default category
-
+  // Toggle function to add or remove clothing items
   void _toggleClothing(String category, String item) {
     setState(() {
+      // If the item is already selected, remove it
       if (selectedItems[category] == item) {
         selectedItems[category] = null;
       } else {
+        // Otherwise, select the new item, replacing any existing item in the same category
         selectedItems[category] = item;
       }
     });
@@ -39,112 +41,126 @@ class _CatCustomizerPageState extends State<CatCustomizerPage> {
 
   @override
   Widget build(BuildContext context) {
+    String selectedCategory = 'Fur Coat';
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Cat Customizer'),
       ),
       body: Column(
         children: [
-          // Display cat image with layered clothing items
+          // Display the base cat image with overlaid clothing items
           Expanded(
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                // Starter cat image that stays the same
-                Image.asset('assets/Starter Cat/starter_cat.PNG', width: 200),
-
-                // Layered items over the starter cat
-                if (selectedItems['Fur Coat'] != null)
-                  Positioned(
-                    bottom: 0,
-                    child: Image.asset('assets/${selectedItems['Fur Coat']}.PNG', width: 200),
+            child: Center(
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  // Starter cat image (always displayed and larger size)
+                  Image.asset(
+                    'assets/Starter Cat/starter_cat.PNG',
+                    width: 300, // Make starter_cat bigger by increasing width
+                    height: 300, // Make starter_cat bigger by increasing height
                   ),
-                if (selectedItems['Head'] != null)
-                  Positioned(
-                    top: 20,
-                    child: Image.asset('assets/${selectedItems['Head']}.PNG', width: 100),
-                  ),
-                if (selectedItems['Neck'] != null)
-                  Positioned(
-                    bottom: 40,
-                    child: Image.asset('assets/${selectedItems['Neck']}.PNG', width: 100),
-                  ),
-                if (selectedItems['Eyes'] != null)
-                  Positioned(
-                    top: 50,
-                    child: Image.asset('assets/${selectedItems['Eyes']}.PNG', width: 80),
-                  ),
-                if (selectedItems['Eyebrows'] != null)
-                  Positioned(
-                    top: 45, // Adjust for accurate positioning
-                    left: 20, // Adjust this value if needed
-                    child: Image.asset('assets/${selectedItems['Eyebrows']}.PNG', width: 80),
-                  ),
-                if (selectedItems['Mouth'] != null)
-                  Positioned(
-                    top: 110,
-                    child: Image.asset('assets/${selectedItems['Mouth']}.PNG', width: 80),
-                  ),
-              ],
+                  // Overlay clothing items on top of starter cat with proper positioning
+                  if (selectedItems['Fur Coat'] != null)
+                    Positioned(
+                      bottom: 0,
+                      child: Image.asset(
+                        'assets/${selectedItems['Fur Coat']}.PNG',
+                        width: 300, // Match width with starter_cat
+                        height: 300,
+                      ),
+                    ),
+                  if (selectedItems['Head'] != null)
+                    Positioned(
+                      top: 50, // Adjust to place it on the cat's head
+                      child: Image.asset(
+                        'assets/${selectedItems['Head']}.PNG',
+                        width: 100, // Adjust size to fit
+                        height: 100,
+                      ),
+                    ),
+                  if (selectedItems['Neck'] != null)
+                    Positioned(
+                      bottom: 50, // Adjust to fit around the neck area
+                      child: Image.asset(
+                        'assets/${selectedItems['Neck']}.PNG',
+                        width: 150,
+                        height: 50,
+                      ),
+                    ),
+                  if (selectedItems['Eyes'] != null)
+                    Positioned(
+                      top: 100, // Adjust to fit the eye position
+                      child: Image.asset(
+                        'assets/${selectedItems['Eyes']}.PNG',
+                        width: 60,
+                        height: 30,
+                      ),
+                    ),
+                  if (selectedItems['Eyebrows'] != null)
+                    Positioned(
+                      top: 85, // Adjust to fit the eyebrow position
+                      child: Image.asset(
+                        'assets/${selectedItems['Eyebrows']}.PNG',
+                        width: 60,
+                        height: 20,
+                      ),
+                    ),
+                  if (selectedItems['Mouth'] != null)
+                    Positioned(
+                      top: 130, // Adjust to fit the mouth position
+                      child: Image.asset(
+                        'assets/${selectedItems['Mouth']}.PNG',
+                        width: 50,
+                        height: 30,
+                      ),
+                    ),
+                ],
+              ),
             ),
           ),
-          // Horizontal bar for categories
+          // Carousel-style category selection
           Container(
             height: 60,
             child: ListView(
               scrollDirection: Axis.horizontal,
               children: clothingItems.keys.map((category) {
-                return GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      selectedCategory = category;
-                    });
-                  },
-                  child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    margin: EdgeInsets.symmetric(horizontal: 4),
-                    decoration: BoxDecoration(
-                      color: selectedCategory == category ? Colors.deepPurple : Colors.grey[300],
-                      borderRadius: BorderRadius.circular(12),
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        selectedCategory = category;
+                      });
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: selectedCategory == category ? Colors.purple : Colors.grey,
                     ),
-                    child: Center(
-                      child: Text(
-                        category,
-                        style: TextStyle(
-                          color: selectedCategory == category ? Colors.white : Colors.black,
-                        ),
-                      ),
-                    ),
+                    child: Text(category),
                   ),
                 );
               }).toList(),
             ),
           ),
-          // Buttons to display items as images for each category
+          // Display items within the selected category as buttons
           Expanded(
             child: ListView(
-              padding: EdgeInsets.all(8.0),
-              children: [
-                Wrap(
-                  spacing: 10,
-                  runSpacing: 10,
-                  children: clothingItems[selectedCategory]!.map((item) {
-                    return ElevatedButton(
-                      onPressed: () => _toggleClothing(selectedCategory, item),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: selectedItems[selectedCategory] == item
-                            ? Colors.red
-                            : Colors.blue,
-                      ),
-                      child: Image.asset(
-                        'assets/$item.PNG',
-                        width: 50, // Adjust the size of the image preview as needed
-                        height: 50,
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ],
+              children: clothingItems[selectedCategory]!.map((item) {
+                final itemName = item.split('/').last.split('_').join(' ');
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                  child: ElevatedButton(
+                    onPressed: () => _toggleClothing(selectedCategory, item),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: selectedItems[selectedCategory] == item ? Colors.blue : Colors.grey,
+                    ),
+                    child: Text(
+                      selectedItems[selectedCategory] == item ? 'Remove $itemName' : 'Add $itemName',
+                    ),
+                  ),
+                );
+              }).toList(),
             ),
           ),
         ],

@@ -31,9 +31,10 @@ class UserProfileService {
       final age = (userProfile['age'] as num?)?.toInt() ?? 0;
       final gender = userProfile['gender'] as String? ?? 'Male';
       final activityLevel = userProfile['activity_level'] as String? ?? 'sedentary';
+      final goalWeight = (userProfile['goal'] as num?)?.toDouble() ?? 0.0;
 
       // Calculate calorie goal using the Mifflin-St Jeor equation
-      return calculateCalories(weight, height, age, gender, activityLevel);
+      return calculateCalories(weight, height, age, gender, activityLevel, goalWeight);
     } catch (e) {
       throw Exception('Error calculating calorie goal: $e');
     }
@@ -53,15 +54,18 @@ class UserProfileService {
   }
 
   /// Calculates BMR and adjusts it based on activity level
-  int calculateCalories(double weight, double height, int age, String gender, String activityLevel) {
-    double bmr;
+  int calculateCalories(double weight, double height, int age, String gender, String activityLevel, double goalWeight) {
+    double bmr, bmr2, bmrDiff;
 
     // Calculate BMR based on gender
     if (gender.toLowerCase() == 'male') {
-      bmr = 10 * weight + 6.25 * height - 5 * age + 5;
+      bmr = 66 + (6.23 * weight) + (12.7 * height) - (6.8 * age);
+      //bmr2 = 66 + (6.23 * goalWeight) + (12.7 * height) - (6.8 * age);
     } else {
-      bmr = 10 * weight + 6.25 * height - 5 * age - 161;
+      bmr = 655 + (4.35 * weight) + (4.7 * height) - (4.7 * age);
+      //bmr2 = 655 + (4.35 * goalWeight) + (4.7 * height) - (4.7 * age);
     }
+    //bmrDiff = bmr - bmr2;
 
     // Adjust BMR based on activity level
     double activityMultiplier;
@@ -82,7 +86,7 @@ class UserProfileService {
         throw Exception('Invalid activity level: $activityLevel');
     }
 
-    return (bmr * activityMultiplier).round(); // Round to nearest whole number
+    return (bmr * activityMultiplier - 500).round(); // Round to nearest whole number
   }
 
   final GroqClient _groqClient = GroqClient(
