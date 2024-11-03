@@ -113,13 +113,21 @@ packages:
     source: sdk
     version: "0.0.0"
   functions_client:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: functions_client
       sha256: "6884036c71760ebcf3031273347522cf0ff0bc98d586455be56709b28b242c86"
       url: "https://pub.dev"
     source: hosted
     version: "0.0.1-dev.5"
+  google_generative_ai:
+    dependency: "direct main"
+    description:
+      name: google_generative_ai
+      sha256: "946f37c947bbc3591ed1c2878f8a41a0f75e74468dae791f84f14db3df3f3551"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.1-dev"
   google_sign_in:
     dependency: "direct main"
     description:
@@ -169,7 +177,7 @@ packages:
     source: hosted
     version: "13.1.0"
   gotrue:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: gotrue
       sha256: "56ffab7a8c63db55608dcade0f8113ecca7d2b0fbf0b1f52df731a6acedcb150"
@@ -361,7 +369,7 @@ packages:
     source: hosted
     version: "2.1.8"
   postgrest:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: postgrest
       sha256: f8af0d0d8945368e0b55e9973700597794dea53922d0c873aba8cf74682cfd36
@@ -369,7 +377,7 @@ packages:
     source: hosted
     version: "0.1.11"
   realtime_client:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: realtime_client
       sha256: "1612344aeae1d7db81725d0b8c044c13578ab563512a4cbd9ceec4ff130f002d"
@@ -398,7 +406,7 @@ packages:
     source: hosted
     version: "1.11.1"
   storage_client:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: storage_client
       sha256: e1bf4d723834902682e6e85611a05ba96f7291bdd45b37245ae0e39b99cff093
@@ -422,7 +430,7 @@ packages:
     source: hosted
     version: "1.2.0"
   supabase:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: supabase
       sha256: "8ede1cf6a3662abf7eda9330f4ee1f025329c110378df4282754d8cbdb03d89b"

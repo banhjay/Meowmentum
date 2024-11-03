@@ -8,8 +8,9 @@ import 'pages/loading_screen.dart';
 
 import 'pages/sign_in.dart';
 import 'pages/sign_up.dart';
+import 'pages/profile_setup.dart';
+import 'pages/services/weight_calc.dart';
 
-import 'pages/nav_bar_screen.dart';
 
 void main() async{
 
@@ -30,7 +31,6 @@ class MyApp extends StatelessWidget {
   // Build the MaterialApp with routes and authentication handling
   @override
   Widget build(BuildContext context) {
-    final supabase = Supabase.instance;
 
     return MaterialApp(
       title: 'Fitness App',
@@ -41,12 +41,13 @@ class MyApp extends StatelessWidget {
       ),
       // Define the routes for navigation
       routes: {
-        '/loading': (context) => LoadingScreen(),
-        '/home': (context) => HomePage(),
+        '/loading': (context) => const LoadingScreen(),
+        '/home': (context) => const HomePage(),
         '/customizer': (context) => CatCustomizerPage(),
-        '/edit_profile': (context) => EditProfilePage(),
+        '/edit_profile': (context) => const EditProfilePage(),
         '/sign_in': (context) => const SignInPage(),
         '/sign_up': (context) => const SignUpPage(),
+        '/profile_setup': (context) => const ProfileSetupPage(),
       },
       // Handle authentication state changes
       home: const AuthStateHandler(),
@@ -55,7 +56,7 @@ class MyApp extends StatelessWidget {
 }
 
 class AuthStateHandler extends StatefulWidget {
-  const AuthStateHandler({Key? key}) : super(key: key);
+  const AuthStateHandler({super.key});
 
   @override
   _AuthStateHandlerState createState() => _AuthStateHandlerState();
@@ -84,7 +85,7 @@ class _AuthStateHandlerState extends State<AuthStateHandler> {
   @override
   Widget build(BuildContext context) {
     if (_isAuthenticated) {
-      return HomePage();
+      return const HomePage(); 
     } else {
       return const SignInPage();
     }

@@ -1,17 +1,17 @@
-// pages/edit_profile.dart
+// pages/profile_setup.dart
 
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'services/weight_calc.dart'; // Ensure the correct path
+import 'services/weight_calc.dart'; // Ensure correct path
 
-class EditProfilePage extends StatefulWidget {
-  const EditProfilePage({super.key});
+class ProfileSetupPage extends StatefulWidget {
+  const ProfileSetupPage({super.key});
 
   @override
-  _EditProfilePageState createState() => _EditProfilePageState();
+  _ProfileSetupPageState createState() => _ProfileSetupPageState();
 }
 
-class _EditProfilePageState extends State<EditProfilePage> {
+class _ProfileSetupPageState extends State<ProfileSetupPage> {
   final SupabaseClient _client = Supabase.instance.client;
   final _formKey = GlobalKey<FormState>();
 
@@ -19,13 +19,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
   String _username = '';
   double _height = 0.0;
   double _weight = 0.0;
-  int _goalWeight = 0; // Changed from String to int
+  double _goalWeight = 0.0; // Updated to double
   String _gender = 'Male';
   int _age = 18;
   String _activityLevel = 'sedentary'; // Lowercase for consistency
 
-  bool _isLoading = true; // Indicates if data is being fetched
-  bool _isUpdating = false; // Indicates if data is being updated
+  bool _isLoading = false;
 
   // Dropdown Options
   final List<String> _genders = ['Male', 'Female'];
@@ -39,101 +38,57 @@ class _EditProfilePageState extends State<EditProfilePage> {
   // Initialize UserProfileService
   final UserProfileService _userProfileService = UserProfileService();
 
-  @override
-  void initState() {
-    super.initState();
-    _fetchProfile();
-  }
-
-  /// Fetches the current user's profile from Supabase
-  Future<void> _fetchProfile() async {
-    final userId = _client.auth.currentUser?.id;
-
-    if (userId == null) {
-      // User is not authenticated, redirect to sign-in page
-      Navigator.pushReplacementNamed(context, '/sign_in');
-      return;
-    }
-
-    final response = await _client
-        .from('profiles')
-        .select()
-        .eq('id', userId)
-        .single()
-        .execute();
-
-    if (response.error != null) {
-      // Handle error
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error fetching profile: ${response.error!.message}')),
-      );
-      setState(() {
-        _isLoading = false;
-      });
-      return;
-    }
-
-    final data = response.data as Map<String, dynamic>;
-
-    setState(() {
-      _username = data['username'] ?? '';
-      _height = (data['height'] as num?)?.toDouble() ?? 0.0;
-      _weight = (data['weight'] as num?)?.toDouble() ?? 0.0;
-      _goalWeight = (data['goal'] as int?) ?? 0;
-      _gender = data['gender'] ?? 'Male';
-      _age = data['age'] ?? 18;
-      _activityLevel = (data['activity_level'] as String?)?.toLowerCase() ?? 'sedentary';
-      _isLoading = false;
-    });
-  }
-
-  /// Updates the user's profile in Supabase
-  Future<void> _updateProfile() async {
+  Future<void> _submitProfile() async {
     if (!_formKey.currentState!.validate()) return;
 
     _formKey.currentState!.save();
 
     setState(() {
-      _isUpdating = true;
+      _isLoading = true;
     });
 
     try {
+      // Insert profile without calorie_goal first
       final userId = _client.auth.currentUser?.id;
-
       if (userId == null) {
         throw Exception('User not authenticated.');
       }
 
-      // Update profile data without calorie_goal first
-      final updateResponse = await _client.from('profiles').update({
+      // Insert initial profile data
+      final insertResponse = await _client.from('profiles').insert({
+        'id': userId,
+        'username': _username,
         'height': _height,
         'weight': _weight,
+        'goal': _goalWeight,
+        'gender': _gender,
         'age': _age,
         'activity_level': _activityLevel,
-        'gender': _gender,
-        'goal': _goalWeight, // Updated to send int
-        // 'username': _username, // Uncomment if allowing username changes
-      }).eq('id', userId).execute();
+        'current_progress': 0, // Assuming default value
+        'streak': 0, // Assuming default value
+        // 'calorie_goal': will be calculated and updated
+      }).execute();
 
-      if (updateResponse.error != null) {
-        throw Exception('Error updating profile: ${updateResponse.error!.message}');
+      if (insertResponse.error != null) {
+        throw Exception('Error saving profile: ${insertResponse.error!.message}');
       }
 
-      // Calculate new calorie_goal
-      final newCalorieGoal = await _userProfileService.calculateCalorieGoal(userId);
+      // Calculate calorie_goal
+      final calorieGoal = await _userProfileService.calculateCalorieGoal(userId);
 
-      // Update profile with new calorie_goal
-      await _userProfileService.updateCalorieGoal(userId, newCalorieGoal);
+      // Update profile with calorie_goal
+      await _userProfileService.updateCalorieGoal(userId, calorieGoal);
 
       // Get and update workout plan (if applicable)
       await _userProfileService.getAndStoreWorkoutRecommendation(userId);
 
       // Success Feedback
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Profile updated successfully!')),
+        const SnackBar(content: Text('Profile created successfully!')),
       );
 
-      // Optionally, navigate back or refresh the profile page
+      // Navigate to the main screen with navbar
+      Navigator.pushReplacementNamed(context, '/home');
     } catch (e) {
       // Error Handling
       ScaffoldMessenger.of(context).showSnackBar(
@@ -141,31 +96,31 @@ class _EditProfilePageState extends State<EditProfilePage> {
       );
     } finally {
       setState(() {
-        _isUpdating = false;
+        _isLoading = false;
       });
     }
   }
+
+  // Optionally, if you want to include username uniqueness check before insertion,
+  // you can integrate similar logic as in EditProfilePage.
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Edit Profile'),
+        title: const Text('Set Up Your Profile'),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: SingleChildScrollView(
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : SingleChildScrollView(
                 child: Form(
                   key: _formKey,
                   child: Column(
                     children: [
-                      // Username (Optional: Allowing username changes)
-                      // Uncomment the following block if you want to allow username changes
-                      /*
+                      // Username
                       TextFormField(
-                        initialValue: _username,
                         decoration: const InputDecoration(labelText: 'Username'),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -180,11 +135,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         },
                       ),
                       const SizedBox(height: 16.0),
-                      */
-
                       // Height
                       TextFormField(
-                        initialValue: _height > 0 ? _height.toString() : '',
                         decoration: const InputDecoration(labelText: 'Height (in)'),
                         keyboardType: const TextInputType.numberWithOptions(decimal: true),
                         validator: (value) {
@@ -202,10 +154,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         },
                       ),
                       const SizedBox(height: 16.0),
-
                       // Weight
                       TextFormField(
-                        initialValue: _weight > 0 ? _weight.toString() : '',
                         decoration: const InputDecoration(labelText: 'Weight (lbs)'),
                         keyboardType: const TextInputType.numberWithOptions(decimal: true),
                         validator: (value) {
@@ -223,42 +173,30 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         },
                       ),
                       const SizedBox(height: 16.0),
-
                       // Goal Weight
                       TextFormField(
-                        initialValue: _goalWeight > 0 ? _goalWeight.toString() : '',
                         decoration: const InputDecoration(labelText: 'Goal Weight (lbs)'),
-                        keyboardType: TextInputType.number,
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Please enter your goal weight';
                           }
-                          final goal = int.tryParse(value);
+                          final goal = double.tryParse(value);
                           if (goal == null || goal <= 0) {
                             return 'Please enter a valid goal weight';
                           }
                           if (_weight != 0 && goal >= _weight) {
-                            return 'Goal weight must be lower than your current weight (${_weight.toStringAsFixed(1)} lbs)';
+                            return 'Goal weight must be lower than your current weight';
                           }
                           return null;
                         },
                         onSaved: (value) {
-                          _goalWeight = int.parse(value!.trim());
+                          _goalWeight = double.parse(value!.trim());
                         },
                       ),
-                      const SizedBox(height: 8.0),
-
-                      // Goal Weight Validation Note
-                      if (_weight > 0)
-                        Text(
-                          'Your goal weight must be lower than your current weight (${_weight.toStringAsFixed(1)} lbs).',
-                          style: const TextStyle(color: Colors.grey),
-                        ),
                       const SizedBox(height: 16.0),
-
                       // Age
                       TextFormField(
-                        initialValue: _age > 0 ? _age.toString() : '',
                         decoration: const InputDecoration(labelText: 'Age'),
                         keyboardType: TextInputType.number,
                         validator: (value) {
@@ -276,7 +214,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         },
                       ),
                       const SizedBox(height: 16.0),
-
                       // Gender
                       DropdownButtonFormField<String>(
                         value: _gender,
@@ -302,7 +239,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         },
                       ),
                       const SizedBox(height: 16.0),
-
                       // Activity Level
                       DropdownButtonFormField<String>(
                         value: _activityLevel,
@@ -328,13 +264,17 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         },
                       ),
                       const SizedBox(height: 16.0),
-
+                      // Goal Weight Validation Note
+                      if (_weight > 0)
+                        Text(
+                          'Your goal weight must be lower than your current weight (${_weight} lbs).',
+                          style: const TextStyle(color: Colors.grey),
+                        ),
                       const SizedBox(height: 32.0),
-
                       // Submit Button
                       ElevatedButton(
-                        onPressed: _isUpdating ? null : _updateProfile,
-                        child: _isUpdating
+                        onPressed: _isLoading ? null : _submitProfile,
+                        child: _isLoading
                             ? const SizedBox(
                                 width: 20,
                                 height: 20,
@@ -343,12 +283,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                   strokeWidth: 2.0,
                                 ),
                               )
-                            : const Text('Save Changes'),
+                            : const Text('Save Profile'),
                       ),
                     ],
                   ),
                 ),
-            ),
-    ));
-  }
-}
+          ),
+        ));
+      }
+    }
