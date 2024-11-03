@@ -32,6 +32,11 @@ dev_dependencies:
   flutter_lints: ^4.0.0
 
 flutter:
+  fonts:
+    - family: scrapbook
+      fonts:
+        - asset: assets/fonts/Honeybutter redacted.otf
+
   uses-material-design: true
 
   assets:

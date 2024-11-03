@@ -119,11 +119,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
         throw Exception('Error updating profile: ${updateResponse.error!.message}');
       }
 
-      // Calculate new calorie_goal
-      final newCalorieGoal = await _userProfileService.calculateCalorieGoal(userId);
-
-      // Update profile with new calorie_goal
-      await _userProfileService.updateCalorieGoal(userId, newCalorieGoal);
 
       // Get and update workout plan (if applicable)
       await _userProfileService.getAndStoreWorkoutRecommendation(userId);

@@ -40,18 +40,7 @@ class UserProfileService {
     }
   }
 
-  /// Updates the calorie_goal in the profiles table
-  Future<void> updateCalorieGoal(String userId, int calorieGoal) async {
-    final response = await _supabaseClient
-        .from('profiles')
-        .update({'calorie_goal': calorieGoal})
-        .eq('id', userId)
-        .execute();
 
-    if (response.error != null) {
-      throw Exception('Error updating calorie goal: ${response.error!.message}');
-    }
-  }
 
   /// Calculates BMR and adjusts it based on activity level
   int calculateCalories(double weight, double height, int age, String gender, String activityLevel, double goalWeight) {

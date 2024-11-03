@@ -9,6 +9,84 @@ import 'edit_profile.dart';
 import 'loading_screen.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 
+/// Optional: If you choose to create a separate widget for the customized cat display,
+/// you can define it here or import it from another file.
+class CustomizedCatDisplay extends StatelessWidget {
+  final Map<String, String?> selectedItems;
+
+  const CustomizedCatDisplay({Key? key, required this.selectedItems}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        // Starter cat image that stays the same
+        Image.asset(
+          'assets/Starter Cat/starter_cat.PNG',
+          width: 300,
+          height: 300,
+        ),
+        // Layered items over the starter cat
+        if (selectedItems['Fur Coat'] != null)
+          Image.asset(
+            'assets/${selectedItems['Fur Coat']}.PNG',
+            width: 300,
+            height: 300,
+          ),
+        if (selectedItems['Head'] != null)
+          Positioned(
+            child: Image.asset(
+              'assets/${selectedItems['Head']}.PNG',
+              width: 300,
+              height: 300,
+            ),
+          ),
+        if (selectedItems['Neck'] != null)
+          Positioned(
+            child: Image.asset(
+              'assets/${selectedItems['Neck']}.PNG',
+              width: 300,
+              height: 300,
+            ),
+          ),
+        if (selectedItems['Face'] != null)
+          Positioned(
+            child: Image.asset(
+              'assets/${selectedItems['Face']}.PNG',
+              width: 300,
+              height: 300,
+            ),
+          ),
+        if (selectedItems['Eyes'] != null)
+          Positioned(
+            child: Image.asset(
+              'assets/${selectedItems['Eyes']}.PNG',
+              width: 300,
+              height: 300,
+            ),
+          ),
+        if (selectedItems['Eyebrows'] != null)
+          Positioned(
+            child: Image.asset(
+              'assets/${selectedItems['Eyebrows']}.PNG',
+              width: 300,
+              height: 300,
+            ),
+          ),
+        if (selectedItems['Mouth'] != null)
+          Positioned(
+            child: Image.asset(
+              'assets/${selectedItems['Mouth']}.PNG',
+              width: 300,
+              height: 300,
+            ),
+          ),
+      ],
+    );
+  }
+}
+
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -26,6 +104,7 @@ class _HomePageState extends State<HomePage> {
     _checkProfile();
   }
 
+  /// Checks if the user has a profile. If not, redirects to ProfileSetupPage.
   Future<void> _checkProfile() async {
     final userId = _client.auth.currentUser?.id;
 
@@ -88,7 +167,7 @@ class _MainScreenWithNavBarState extends State<MainScreenWithNavBar> {
 
   final List<Widget> _pages = [
     CatCustomizerPage(),
-    const ActualHomePage(), // Renamed to avoid confusion
+    const ActualHomePage(),
     const EditProfilePage(),
   ];
 
@@ -139,12 +218,15 @@ class ActualHomePage extends StatefulWidget {
 class _ActualHomePageState extends State<ActualHomePage> {
   final SupabaseClient _client = Supabase.instance.client;
   String? _workoutPlan;
+  int? _currentProgress; // Stores current_progress
+  int? _calorieGoal; // Stores calorie_goal
   bool _isLoading = true;
 
   // Variables to store cat settings
   Map<String, String?> selectedItems = {
     'Fur Coat': null,
     'Head': null,
+    'Face': null,
     'Neck': null,
     'Eyes': null,
     'Eyebrows': null,
@@ -168,7 +250,7 @@ class _ActualHomePageState extends State<ActualHomePage> {
     });
   }
 
-  /// Fetches the workout plan and calorie goal from Supabase
+  /// Fetches the workout plan, calorie goal, and current progress from Supabase
   Future<void> _fetchWorkoutPlan() async {
     try {
       final userId = _client.auth.currentUser?.id;
@@ -176,7 +258,7 @@ class _ActualHomePageState extends State<ActualHomePage> {
 
       final response = await _client
           .from('profiles')
-          .select('plan, calorie_goal')
+          .select('plan, goal, current_progress') // Added current_progress
           .eq('id', userId)
           .single()
           .execute();
@@ -186,7 +268,9 @@ class _ActualHomePageState extends State<ActualHomePage> {
       }
 
       setState(() {
-        _workoutPlan = response.data['plan'];
+        _workoutPlan = response.data['plan'] as String?;
+        _calorieGoal = response.data['goal'] as int?;
+        _currentProgress = response.data['current_progress'] as int?;
       });
     } catch (e) {
       print('Error fetching workout plan: $e');
@@ -201,8 +285,7 @@ class _ActualHomePageState extends State<ActualHomePage> {
     try {
       final user = _client.auth.currentUser;
       if (user == null) {
-        // User not authenticated, handle accordingly
-        // For example, navigate to sign-in page
+        // User not authenticated, navigate to sign-in page
         Navigator.pushReplacementNamed(context, '/sign_in');
         return;
       }
@@ -252,14 +335,13 @@ class _ActualHomePageState extends State<ActualHomePage> {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: () {
+            onPressed: () async {
               setState(() {
                 _isLoading = true;
               });
-              _fetchData().then((_) {
-                setState(() {
-                  _isLoading = false;
-                });
+              await _fetchData();
+              setState(() {
+                _isLoading = false;
               });
             },
             tooltip: 'Refresh',
@@ -271,50 +353,47 @@ class _ActualHomePageState extends State<ActualHomePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Display Customized Cat
+            // Display Customized Cat using the reusable widget
             Center(
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  // Starter cat image that stays the same
-                  Image.asset('assets/Starter Cat/starter_cat.PNG', width: 200),
-
-                  // Layered items over the starter cat
-                  if (selectedItems['Fur Coat'] != null)
-                    Positioned(
-                      bottom: 0,
-                      child: Image.asset('assets/${selectedItems['Fur Coat']}.PNG', width: 200),
-                    ),
-                  if (selectedItems['Head'] != null)
-                    Positioned(
-                      top: 20,
-                      child: Image.asset('assets/${selectedItems['Head']}.PNG', width: 100),
-                    ),
-                  if (selectedItems['Neck'] != null)
-                    Positioned(
-                      bottom: 40,
-                      child: Image.asset('assets/${selectedItems['Neck']}.PNG', width: 100),
-                    ),
-                  if (selectedItems['Eyes'] != null)
-                    Positioned(
-                      top: 50,
-                      child: Image.asset('assets/${selectedItems['Eyes']}.PNG', width: 80),
-                    ),
-                  if (selectedItems['Eyebrows'] != null)
-                    Positioned(
-                      top: 45, // Adjust for accurate positioning
-                      left: 20, // Adjust this value if needed
-                      child: Image.asset('assets/${selectedItems['Eyebrows']}.PNG', width: 80),
-                    ),
-                  if (selectedItems['Mouth'] != null)
-                    Positioned(
-                      top: 110,
-                      child: Image.asset('assets/${selectedItems['Mouth']}.PNG', width: 80),
-                    ),
-                ],
-              ),
+              child: CustomizedCatDisplay(selectedItems: selectedItems),
             ),
             const SizedBox(height: 24.0),
+
+            // Progress Bar Section
+            if (_calorieGoal != null && _currentProgress != null)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Your Progress',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8.0),
+                  Text(
+                    'Progress: $_currentProgress / $_calorieGoal calories',
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                  const SizedBox(height: 8.0),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8.0),
+                    child: LinearProgressIndicator(
+                      value: _calorieGoal! > 0
+                          ? (_currentProgress! / _calorieGoal!).clamp(0.0, 1.0)
+                          : 0.0, // Avoid division by zero and clamp to 1.0
+                      minHeight: 20,
+                      backgroundColor: Colors.grey[300],
+                      color: Colors.deepPurple,
+                    ),
+                  ),
+                ],
+              )
+            else
+              const SizedBox(), // If goal or progress is null, show nothing
+            const SizedBox(height: 24.0),
+
             // Display Workout Plan
             if (_workoutPlan != null && _workoutPlan!.isNotEmpty)
               Column(
@@ -325,6 +404,7 @@ class _ActualHomePageState extends State<ActualHomePage> {
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
+                      fontFamily: 'scrapbook'
                     ),
                   ),
                   const SizedBox(height: 16.0),

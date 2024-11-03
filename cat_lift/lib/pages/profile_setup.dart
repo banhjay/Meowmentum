@@ -66,18 +66,11 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
         'activity_level': _activityLevel,
         'current_progress': 0, // Assuming default value
         'streak': 0, // Assuming default value
-        // 'calorie_goal': will be calculated and updated
       }).execute();
 
       if (insertResponse.error != null) {
         throw Exception('Error saving profile: ${insertResponse.error!.message}');
       }
-
-      // Calculate calorie_goal
-      final calorieGoal = await _userProfileService.calculateCalorieGoal(userId);
-
-      // Update profile with calorie_goal
-      await _userProfileService.updateCalorieGoal(userId, calorieGoal);
 
       // Get and update workout plan (if applicable)
       await _userProfileService.getAndStoreWorkoutRecommendation(userId);

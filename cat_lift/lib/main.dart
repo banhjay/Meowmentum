@@ -1,3 +1,5 @@
+// main.dart
+
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -11,14 +13,12 @@ import 'pages/sign_up.dart';
 import 'pages/profile_setup.dart';
 import 'pages/services/weight_calc.dart';
 
-
 void main() async{
-
   WidgetsFlutterBinding.ensureInitialized();
 
   await Supabase.initialize(
     url: 'https://ichhumfztwlflblkzgpg.supabase.co',
-    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImljaGh1bWZ6dHdsZmxibGt6Z3BnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzA1NzE3NzIsImV4cCI6MjA0NjE0Nzc3Mn0.czrZhXdeNJ2clI77lcktMtkP9xdouImImvyShH03GgY',
+    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImljaGh1bWZ6dHdsZmxibGt6Z3BnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzA1NzE3NzIsImV4cCI6MjA0NjE0Nzc3Mn0.czrZhXdeNJ2clI77lcktMtkP9xdouImImvyShH03GgY', 
   );
 
   runApp(const MyApp());
@@ -90,6 +90,4 @@ class _AuthStateHandlerState extends State<AuthStateHandler> {
       return const SignInPage();
     }
   }
-
-  
 }
