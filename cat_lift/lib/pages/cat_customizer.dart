@@ -3,12 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class CatCustomizerPage extends StatefulWidget {
+  const CatCustomizerPage({super.key});
+
   @override
   _CatCustomizerPageState createState() => _CatCustomizerPageState();
 }
 
 class _CatCustomizerPageState extends State<CatCustomizerPage> with SingleTickerProviderStateMixin {
-  // Track selected items by category
   Map<String, String?> selectedItems = {
     'Fur Coat': null,
     'Head': null,
@@ -19,7 +20,6 @@ class _CatCustomizerPageState extends State<CatCustomizerPage> with SingleTicker
     'Mouth': null,
   };
 
-  // List of items available for each category
   final Map<String, List<String>> clothingItems = {
     'Fur Coat': ['Fur Coat/black_coat', 'Fur Coat/gray_coat', 'Fur Coat/orange_coat', 'Fur Coat/calico_coat', 'Fur Coat/purple_coat', 'Fur Coat/siamese_coat'],
     'Head': ['Head/bear_hat', 'Head/strawberry_hat', 'Head/hack_hat', 'Head/leaf_hat', 'Head/orange_hat', 'Head/reddit_hat'],
@@ -125,7 +125,7 @@ class _CatCustomizerPageState extends State<CatCustomizerPage> with SingleTicker
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Cat Customizer'),
+        title: const Text('Closet', style: TextStyle(fontFamily: 'scrapbook')),
         backgroundColor: Colors.purple.shade50,
         elevation: 2,
       ),
@@ -133,162 +133,178 @@ class _CatCustomizerPageState extends State<CatCustomizerPage> with SingleTicker
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
-                // Display cat image with layered clothing items
+                // Upper half with background and cat layers
                 Expanded(
-                  child: Center(
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        // Starter cat image that stays the same
-                        Image.asset(
-                          'assets/Starter Cat/starter_cat.PNG',
-                          width: 300,
-                          height: 300,
+                  flex: 2,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      // Background image limited to the upper half and shifted upwards
+                      Positioned(
+                        top: -50, // Adjust this value as needed to align with the tabs
+                        left: 0,
+                        right: 0,
+                        child: Image.asset(
+                          'assets/nav_bar/bedroom_background.png', // Updated path
+                          fit: BoxFit.cover,
+                          height: MediaQuery.of(context).size.height * 0.5, // Covers upper half
+                          alignment: Alignment.topCenter, // Aligns the image to the top
                         ),
-                        // Layered items over the starter cat
-                        if (selectedItems['Fur Coat'] != null)
-                          Image.asset(
-                            'assets/${selectedItems['Fur Coat']}.PNG',
-                            width: 300,
-                            height: 300,
-                          ),
-                        if (selectedItems['Head'] != null)
-                          Positioned(
-                            child: Image.asset(
-                              'assets/${selectedItems['Head']}.PNG',
+                      ),
+                      // Cat and clothing layers on top of the background
+                      Center(
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Image.asset(
+                              'assets/Starter Cat/starter_cat.PNG',
                               width: 300,
                               height: 300,
                             ),
-                          ),
-                        if (selectedItems['Face'] != null)
-                          Positioned(
-                            child: Image.asset(
-                              'assets/${selectedItems['Face']}.PNG',
-                              width: 300,
-                              height: 300,
-                            ),
-                          ),
-                        if (selectedItems['Neck'] != null)
-                          Positioned(
-                            child: Image.asset(
-                              'assets/${selectedItems['Neck']}.PNG',
-                              width: 300,
-                              height: 300,
-                            ),
-                          ),
-                        if (selectedItems['Eyes'] != null)
-                          Positioned(
-                            child: Image.asset(
-                              'assets/${selectedItems['Eyes']}.PNG',
-                              width: 300,
-                              height: 300,
-                            ),
-                          ),
-                        if (selectedItems['Eyebrows'] != null)
-                          Positioned(
-                            child: Image.asset(
-                              'assets/${selectedItems['Eyebrows']}.PNG',
-                              width: 300,
-                              height: 300,
-                            ),
-                          ),
-                        if (selectedItems['Mouth'] != null)
-                          Positioned(
-                            child: Image.asset(
-                              'assets/${selectedItems['Mouth']}.PNG',
-                              width: 300,
-                              height: 300,
-                            ),
-                          ),
-                      ],
-                    ),
+                            if (selectedItems['Fur Coat'] != null)
+                              Image.asset(
+                                'assets/${selectedItems['Fur Coat']}.PNG',
+                                width: 300,
+                                height: 300,
+                              ),
+                            if (selectedItems['Head'] != null)
+                              Image.asset(
+                                'assets/${selectedItems['Head']}.PNG',
+                                width: 300,
+                                height: 300,
+                              ),
+                            if (selectedItems['Face'] != null)
+                              Image.asset(
+                                'assets/${selectedItems['Face']}.PNG',
+                                width: 300,
+                                height: 300,
+                              ),
+                            if (selectedItems['Neck'] != null)
+                              Image.asset(
+                                'assets/${selectedItems['Neck']}.PNG',
+                                width: 300,
+                                height: 300,
+                              ),
+                            if (selectedItems['Eyes'] != null)
+                              Image.asset(
+                                'assets/${selectedItems['Eyes']}.PNG',
+                                width: 300,
+                                height: 300,
+                              ),
+                            if (selectedItems['Eyebrows'] != null)
+                              Image.asset(
+                                'assets/${selectedItems['Eyebrows']}.PNG',
+                                width: 300,
+                                height: 300,
+                              ),
+                            if (selectedItems['Mouth'] != null)
+                              Image.asset(
+                                'assets/${selectedItems['Mouth']}.PNG',
+                                width: 300,
+                                height: 300,
+                              ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                // Tab Bar for categories
-                TabBar(
-                  controller: _tabController,
-                  isScrollable: true,
-                  indicatorColor: Colors.pinkAccent,
-                  labelColor: Colors.purple,
-                  unselectedLabelColor: Colors.grey,
-                  tabs: clothingItems.keys.map((category) {
-                    return Tab(
-                      text: category,
-                    );
-                  }).toList(),
-                ),
-                // Tab View for each category
+
+                // Tab bar and customization items in the lower half
                 Expanded(
-                  child: TabBarView(
-                    controller: _tabController,
-                    children: clothingItems.keys.map((category) {
-                      return Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: GridView.builder(
-                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 4,
-                            crossAxisSpacing: 8,
-                            mainAxisSpacing: 8,
+                  flex: 3,
+                  child: Column(
+                    children: [
+                      Container(
+                        decoration: const BoxDecoration(
+                          border: Border(
+                            bottom: BorderSide(
+                              color: Colors.brown,
+                              width: 2.0,
+                            ),
                           ),
-                          itemCount: clothingItems[category]!.length,
-                          itemBuilder: (context, index) {
-                            final item = clothingItems[category]![index];
-                            return GestureDetector(
-                              onTap: () => _toggleClothing(category, item),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(8.0),
-                                  color: selectedItems[category] == item
-                                      ? Colors.purple.shade100
-                                      : Colors.grey.shade200,
+                        ),
+                        child: TabBar(
+                          controller: _tabController,
+                          isScrollable: true,
+                          indicator: BoxDecoration(
+                            color: Colors.pinkAccent.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: Colors.brown,
+                              width: 1.5,
+                            ),
+                          ),
+                          labelColor: Colors.brown,
+                          unselectedLabelColor: Colors.grey,
+                          tabs: clothingItems.keys.map((category) {
+                            return Tab(
+                              text: category,
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                      Expanded(
+                        child: TabBarView(
+                          controller: _tabController,
+                          children: clothingItems.keys.map((category) {
+                            return Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: GridView.builder(
+                                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 3,
+                                  crossAxisSpacing: 12,
+                                  mainAxisSpacing: 12,
                                 ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(4.0),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Expanded(
+                                itemCount: clothingItems[category]!.length,
+                                itemBuilder: (context, index) {
+                                  final item = clothingItems[category]![index];
+                                  return GestureDetector(
+                                    onTap: () => _toggleClothing(category, item),
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(16.0),
+                                        color: selectedItems[category] == item
+                                            ? Colors.purple.shade100
+                                            : Colors.grey.shade200,
+                                      ),
+                                      child: Center(
                                         child: Image.asset(
                                           'assets/$item.PNG',
                                           fit: BoxFit.contain,
+                                          width: 80,
+                                          height: 80,
                                         ),
                                       ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        item.split('/').last.replaceAll('_', ' '),
-                                        style: TextStyle(fontSize: 10, color: Colors.black87),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ],
-                                  ),
-                                ),
+                                    ),
+                                  );
+                                },
                               ),
                             );
-                          },
+                          }).toList(),
                         ),
-                      );
-                    }).toList(),
-                  ),
-                ),
-                // Save Button at the bottom
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: ElevatedButton.icon(
-                    onPressed: _isSaving ? null : _saveCatSettings,
-                    icon: _isSaving
-                        ? const SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2.0,
-                            ),
-                          )
-                        : const Icon(Icons.save),
-                    label: const Text('Save Settings'),
-                    style: ElevatedButton.styleFrom(
-                      minimumSize: const Size.fromHeight(50), // Full-width button
-                    ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: ElevatedButton.icon(
+                          onPressed: _isSaving ? null : _saveCatSettings,
+                          icon: _isSaving
+                              ? const SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2.0,
+                                  ),
+                                )
+                              : const Icon(Icons.save),
+                          label: const Text('Save Settings'),
+                          style: ElevatedButton.styleFrom(
+                            minimumSize: const Size.fromHeight(50),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],

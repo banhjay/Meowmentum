@@ -8,13 +8,14 @@ import 'cat_customizer.dart';
 import 'edit_profile.dart';
 import 'loading_screen.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import 'services/weight_calc.dart'; // Ensure correct path
 
 /// Optional: If you choose to create a separate widget for the customized cat display,
 /// you can define it here or import it from another file.
 class CustomizedCatDisplay extends StatelessWidget {
   final Map<String, String?> selectedItems;
 
-  const CustomizedCatDisplay({Key? key, required this.selectedItems}) : super(key: key);
+  const CustomizedCatDisplay({super.key, required this.selectedItems});
 
   @override
   Widget build(BuildContext context) {
@@ -151,60 +152,7 @@ class _HomePageState extends State<HomePage> {
       return const LoadingScreen(); // Show a loading indicator while checking profile
     }
 
-    return const MainScreenWithNavBar(); // Navigate to the main screen with navbar
-  }
-}
-
-class MainScreenWithNavBar extends StatefulWidget {
-  const MainScreenWithNavBar({super.key});
-
-  @override
-  _MainScreenWithNavBarState createState() => _MainScreenWithNavBarState();
-}
-
-class _MainScreenWithNavBarState extends State<MainScreenWithNavBar> {
-  int _selectedIndex = 1; // Start with the Home tab selected
-
-  final List<Widget> _pages = [
-    CatCustomizerPage(),
-    const ActualHomePage(),
-    const EditProfilePage(),
-  ];
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: _pages,
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.pets),
-            label: 'Customize Cat',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home, size: 30), // Slightly larger for emphasis
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: Colors.deepPurple,
-        unselectedItemColor: Colors.grey,
-        onTap: _onItemTapped,
-      ),
-    );
+    return const ActualHomePage(); // Navigate to the main screen with navbar
   }
 }
 
@@ -233,6 +181,9 @@ class _ActualHomePageState extends State<ActualHomePage> {
     'Mouth': null,
   };
 
+  // Initialize UserProfileService
+  final UserProfileService _userProfileService = UserProfileService();
+
   @override
   void initState() {
     super.initState();
@@ -258,7 +209,7 @@ class _ActualHomePageState extends State<ActualHomePage> {
 
       final response = await _client
           .from('profiles')
-          .select('plan, goal, current_progress') // Added current_progress
+          .select('plan, calorie_goal, current_progress') // Added current_progress
           .eq('id', userId)
           .single()
           .execute();
@@ -267,11 +218,19 @@ class _ActualHomePageState extends State<ActualHomePage> {
         throw response.error!;
       }
 
+      final data = response.data as Map<String, dynamic>;
+
+      print('Fetched data: $data');
+
       setState(() {
-        _workoutPlan = response.data['plan'] as String?;
-        _calorieGoal = response.data['goal'] as int?;
-        _currentProgress = response.data['current_progress'] as int?;
+        _workoutPlan = data['plan'] as String?;
+        _calorieGoal = data['calorie_goal'] as int?;
+        _currentProgress = data['current_progress'] as int?;
       });
+
+      print('Workout Plan: $_workoutPlan');
+      print('Calorie Goal: $_calorieGoal');
+      print('Current Progress: $_currentProgress');
     } catch (e) {
       print('Error fetching workout plan: $e');
       ScaffoldMessenger.of(context).showSnackBar(
@@ -304,6 +263,8 @@ class _ActualHomePageState extends State<ActualHomePage> {
       final data = response.data as Map<String, dynamic>;
       final catSettingsJson = data['cat_settings'] as String?;
 
+      print('Fetched cat settings JSON: $catSettingsJson');
+
       if (catSettingsJson != null) {
         final Map<String, dynamic> catSettingsMap = jsonDecode(catSettingsJson);
         setState(() {
@@ -315,11 +276,48 @@ class _ActualHomePageState extends State<ActualHomePage> {
           });
         });
       }
+
+      print('Selected Items after fetching: $selectedItems');
     } catch (e) {
       print('Error fetching cat settings: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error fetching cat settings: $e')),
       );
+    }
+  }
+
+  /// Adds progress to current_progress and updates the UI
+  Future<void> _addToProgress(int increment) async {
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('User not authenticated.')),
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      // Update current_progress
+      await _userProfileService.updateCurrentProgress(userId, increment);
+
+      // Re-fetch workout plan to get updated progress
+      await _fetchWorkoutPlan();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Progress increased by $increment calories!')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error updating progress: $e')),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -331,7 +329,7 @@ class _ActualHomePageState extends State<ActualHomePage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Home'),
+        title: const Text('Home', style: TextStyle(fontFamily: 'scrapbook')),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -369,12 +367,13 @@ class _ActualHomePageState extends State<ActualHomePage> {
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
+                      fontFamily: 'scrapbook'
                     ),
                   ),
                   const SizedBox(height: 8.0),
                   Text(
                     'Progress: $_currentProgress / $_calorieGoal calories',
-                    style: const TextStyle(fontSize: 16),
+                    style: const TextStyle(fontSize: 16, fontFamily: 'scrapbook'),
                   ),
                   const SizedBox(height: 8.0),
                   ClipRRect(
@@ -388,6 +387,42 @@ class _ActualHomePageState extends State<ActualHomePage> {
                       color: Colors.deepPurple,
                     ),
                   ),
+                  const SizedBox(height: 16.0),
+
+                  // Add to Progress Button
+                  ElevatedButton.icon(
+                    onPressed: () => _showAddProgressDialog(),
+                    icon: const Icon(Icons.add),
+                    label: const Text('Add to Progress'),
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size.fromHeight(50), // Make button full width
+                    ),
+                  ),
+
+                  const SizedBox(height: 16.0),
+
+                  // Fish Icon with Frequency Counter
+                  Center(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min, // This ensures the Row takes up only the space it needs
+                      children: [
+                        Image.asset(
+                          'assets/nav_bar/fish.png',
+                          width: 32,
+                          height: 32,
+                        ),
+                        const SizedBox(width: 8.0),
+                        const Text(
+                          'x 0',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontFamily: 'scrapbook',
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
                 ],
               )
             else
@@ -453,6 +488,52 @@ class _ActualHomePageState extends State<ActualHomePage> {
           ],
         ),
       ),
+    );
+  }
+
+  /// Shows a dialog to input the number of calories to add
+  void _showAddProgressDialog() {
+    final TextEditingController caloriesController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Add to Progress'),
+          content: TextField(
+            controller: caloriesController,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(
+              labelText: 'Calories to add',
+              hintText: 'Enter calories',
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // Close the dialog
+              },
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final String input = caloriesController.text.trim();
+                final int? calories = int.tryParse(input);
+                if (calories != null && calories > 0) {
+                  Navigator.pop(context); // Close the dialog
+                  _addToProgress(calories);
+                } else {
+                  // Show error if input is invalid
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Please enter a valid number of calories.')),
+                  );
+                }
+              },
+              child: const Text('Add'),
+            ),
+          ],
+        );
+      },
     );
   }
 }

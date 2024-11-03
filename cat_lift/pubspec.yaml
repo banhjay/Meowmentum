@@ -35,7 +35,7 @@ flutter:
   fonts:
     - family: scrapbook
       fonts:
-        - asset: assets/fonts/Honeybutter redacted.otf
+        - asset: assets/fonts/Fancake.ttf
 
   uses-material-design: true
 
@@ -48,3 +48,8 @@ flutter:
     - assets/mouth/
     - assets/neck/
     - assets/starter cat/
+    - assets/nav_bar/nav_bar_customize.png
+    - assets/nav_bar/nav_bar_home.png
+    - assets/nav_bar/nav_bar_profile.png
+    - assets/nav_bar/fish.png
+    - assets/nav_bar/bedroom_background.png

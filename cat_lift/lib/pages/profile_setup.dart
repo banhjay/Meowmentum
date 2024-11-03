@@ -19,7 +19,7 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
   String _username = '';
   double _height = 0.0;
   double _weight = 0.0;
-  double _goalWeight = 0.0; // Updated to double
+  double _goalWeight = 0.0; // Already double
   String _gender = 'Male';
   int _age = 18;
   String _activityLevel = 'sedentary'; // Lowercase for consistency
@@ -60,7 +60,7 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
         'username': _username,
         'height': _height,
         'weight': _weight,
-        'goal': _goalWeight,
+        'goal_weight': _goalWeight,
         'gender': _gender,
         'age': _age,
         'activity_level': _activityLevel,
@@ -71,6 +71,9 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
       if (insertResponse.error != null) {
         throw Exception('Error saving profile: ${insertResponse.error!.message}');
       }
+
+      await _userProfileService.calculateAndUpdateCalorieGoal(userId);
+
 
       // Get and update workout plan (if applicable)
       await _userProfileService.getAndStoreWorkoutRecommendation(userId);
@@ -128,6 +131,7 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
                         },
                       ),
                       const SizedBox(height: 16.0),
+
                       // Height
                       TextFormField(
                         decoration: const InputDecoration(labelText: 'Height (in)'),
@@ -147,6 +151,7 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
                         },
                       ),
                       const SizedBox(height: 16.0),
+
                       // Weight
                       TextFormField(
                         decoration: const InputDecoration(labelText: 'Weight (lbs)'),
@@ -166,6 +171,7 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
                         },
                       ),
                       const SizedBox(height: 16.0),
+
                       // Goal Weight
                       TextFormField(
                         decoration: const InputDecoration(labelText: 'Goal Weight (lbs)'),
@@ -179,7 +185,7 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
                             return 'Please enter a valid goal weight';
                           }
                           if (_weight != 0 && goal >= _weight) {
-                            return 'Goal weight must be lower than your current weight';
+                            return 'Goal weight must be lower than your current weight (${_weight.toStringAsFixed(1)} lbs)';
                           }
                           return null;
                         },
@@ -187,7 +193,16 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
                           _goalWeight = double.parse(value!.trim());
                         },
                       ),
+                      const SizedBox(height: 8.0),
+
+                      // Goal Weight Validation Note
+                      if (_weight > 0)
+                        Text(
+                          'Your goal weight must be lower than your current weight (${_weight.toStringAsFixed(1)} lbs).',
+                          style: const TextStyle(color: Colors.grey),
+                        ),
                       const SizedBox(height: 16.0),
+
                       // Age
                       TextFormField(
                         decoration: const InputDecoration(labelText: 'Age'),
@@ -207,6 +222,7 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
                         },
                       ),
                       const SizedBox(height: 16.0),
+
                       // Gender
                       DropdownButtonFormField<String>(
                         value: _gender,
@@ -232,6 +248,7 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
                         },
                       ),
                       const SizedBox(height: 16.0),
+
                       // Activity Level
                       DropdownButtonFormField<String>(
                         value: _activityLevel,
@@ -257,13 +274,15 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
                         },
                       ),
                       const SizedBox(height: 16.0),
+
                       // Goal Weight Validation Note
                       if (_weight > 0)
                         Text(
-                          'Your goal weight must be lower than your current weight (${_weight} lbs).',
+                          'Your goal weight must be lower than your current weight (${_weight.toStringAsFixed(1)} lbs).',
                           style: const TextStyle(color: Colors.grey),
                         ),
                       const SizedBox(height: 32.0),
+
                       // Submit Button
                       ElevatedButton(
                         onPressed: _isLoading ? null : _submitProfile,
@@ -281,7 +300,8 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
                     ],
                   ),
                 ),
-          ),
-        ));
-      }
-    }
+            ),
+      ),
+    );
+  }
+}
